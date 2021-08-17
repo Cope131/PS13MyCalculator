@@ -13,11 +13,12 @@ class MainActivity : AppCompatActivity() {
     private var output = ""
     private val operators = arrayListOf("/", "*", "-", "+")
     private val operandsAndOperators =
-            arrayListOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "/", "*", "-", "+")
+            arrayListOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "/", "*", "-", "+", ".")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        tvOutput.text = ""
     }
 
     fun onClickButton(view: View) {
@@ -50,7 +51,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun calculate() {
-        var result = 0
+        var result = 0.0
+        // remove last operator (if present)
+        if (output.isNotEmpty()) {
+            when (output.length) {
+                1 -> {
+                    if (operators.contains(output[0].toString())) {
+                        output = ""
+                    }
+                }
+                else -> {
+                    val lastCharIdx = output.length-1
+                    val lastChar = output[lastCharIdx].toString()
+                    if (operators.contains(lastChar)) {
+                        output = output.substring(0, lastCharIdx)
+                    }
+                }
+            }
+        }
         // store operands & operators used
         val operands = output.split("-", "+", "/", "*")
         val usedOperators = arrayListOf<String>()
@@ -62,24 +80,29 @@ class MainActivity : AppCompatActivity() {
         Log.d(debugTag, operands.toString())
         Log.d(debugTag, usedOperators.toString())
         // initial value of result
-        if (operands.isNotEmpty()) {
-            result = operands[0].toInt()
+        if (operands.isEmpty()) {
+            return
         }
+        val firstOperand = operands[0].trim()
+        if (firstOperand.isEmpty()) {
+            return
+        }
+        result = firstOperand.toDouble()
         // calculation
         operands.forEachIndexed { idx, operand ->
             Log.d(debugTag, "$idx $operand")
             val nextOperandIdx = idx + 1
             if (nextOperandIdx < operands.size) {
-                val nextOperandInt = operands[nextOperandIdx].toIntOrNull()
-                nextOperandInt.apply {
+                val nextOperandDbl = operands[nextOperandIdx].toDoubleOrNull()
+                if (nextOperandDbl != null) {
                     val operator = usedOperators[idx]
                     Log.d(debugTag, "operator: $operator")
-                    Log.d(debugTag, "next operand: $nextOperandInt")
+                    Log.d(debugTag, "next operand: $nextOperandDbl")
                     when (usedOperators[idx]) {
-                        "+" -> result += nextOperandInt!!
-                        "-" -> result -= nextOperandInt!!
-                        "/" -> result /= nextOperandInt!!
-                        else -> result *= nextOperandInt!!
+                        "+" -> result += nextOperandDbl
+                        "-" -> result -= nextOperandDbl
+                        "/" -> result /= nextOperandDbl
+                        else -> result *= nextOperandDbl
                     }
                 }
             }
@@ -87,5 +110,6 @@ class MainActivity : AppCompatActivity() {
         }
         Log.d(debugTag, result.toString())
         tvOutput.text = result.toString()
+        output = ""
     }
 }
