@@ -12,6 +12,7 @@ class MainActivity : AppCompatActivity() {
     private val debugTag = "MainActivity"
     private var output = ""
     private val operators = arrayListOf("/", "*", "-", "+")
+    private val allOperands = arrayListOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
     private val operandsAndOperators =
             arrayListOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "/", "*", "-", "+", ".")
 
@@ -28,7 +29,31 @@ class MainActivity : AppCompatActivity() {
             btnAC.text -> clear()
             btnEquals.text ->  calculate()
             btnSign.text -> appendSign()
+            btnRemainder.text -> appendModulo()
             else -> formEquation(buttonValue)
+        }
+    }
+
+    private fun updateOutputDisplay() {
+        tvOutput.text = output
+    }
+
+    private fun appendModulo() {
+        if (output.isEmpty() || output == "0") {
+            return
+        }
+        // prevent duplicates
+        val lastChar = output[output.length-1]
+        if (lastChar != '%' && !operators.contains(lastChar.toString())) {
+            output += "%"
+            updateOutputDisplay()
+            return
+        }
+        // replace last operator
+        if (operators.contains(lastChar.toString())) {
+            output = output.substring(0, output.length - 1)
+            output += "%"
+            updateOutputDisplay()
         }
     }
 
@@ -41,7 +66,7 @@ class MainActivity : AppCompatActivity() {
             '-' -> output.substring(1, output.length)
             else -> "-$output"
         }
-        tvOutput.text = output
+        updateOutputDisplay()
     }
 
     private fun formEquation(value: CharSequence) {
@@ -50,11 +75,15 @@ class MainActivity : AppCompatActivity() {
             if (output.isNotEmpty()) {
                 val lastChar = output[output.length - 1]
                 if (operators.contains(lastChar.toString()) && operators.contains(value)) {
-                    output = output.substring(0, output.length - 1);
+                    output = output.substring(0, output.length - 1)
+                }
+                // append * after modulo sign (if present)
+                if (lastChar == '%' && allOperands.contains(value.toString())) {
+                    output += "*"
                 }
             }
             output += value
-            tvOutput.text = output
+            updateOutputDisplay()
         }
     }
 
@@ -104,6 +133,15 @@ class MainActivity : AppCompatActivity() {
                usedOperators.add(char.toString())
            }
         }
+        // calculate operands with %
+        operands.forEachIndexed { idx, operand ->
+            val moduloIdx = operand.indexOf("%")
+            if (moduloIdx != -1) {
+                val operandWithoutMod = operand.substring(0, operand.length - 1)
+                operands[idx] = (operandWithoutMod.toDouble() / 100).toString()
+            }
+        }
+
         Log.d(debugTag, operands.toString())
         Log.d(debugTag, usedOperators.toString())
         // initial value of result
@@ -140,6 +178,6 @@ class MainActivity : AppCompatActivity() {
             0.0 -> result.toInt().toString()
             else -> result.toString()
         }
-        output = ""
+        output = result.toString()
     }
 }
