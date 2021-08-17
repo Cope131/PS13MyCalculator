@@ -18,17 +18,30 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        tvOutput.text = ""
+        tvOutput.text = "0"
     }
 
     fun onClickButton(view: View) {
         val button = view as Button
         val buttonValue = button.text
         when (button.text) {
-            "AC" -> clear()
-            "=" ->  calculate()
+            btnAC.text -> clear()
+            btnEquals.text ->  calculate()
+            btnSign.text -> appendSign()
             else -> formEquation(buttonValue)
         }
+    }
+
+    private fun appendSign() {
+        if (output.isEmpty() || output == "0") {
+            return
+        }
+        Log.d(debugTag, output[0] + "")
+        output = when (output[0]) {
+            '-' -> output.substring(1, output.length)
+            else -> "-$output"
+        }
+        tvOutput.text = output
     }
 
     private fun formEquation(value: CharSequence) {
@@ -51,26 +64,40 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun calculate() {
-        var result = 0.0
+        if (output.isEmpty()) {
+            return
+        }
+
+        var result: Double
+        var isNegative = false
         // remove last operator (if present)
-        if (output.isNotEmpty()) {
-            when (output.length) {
-                1 -> {
-                    if (operators.contains(output[0].toString())) {
-                        output = ""
-                    }
+        when (output.length) {
+            1 -> {
+                if (operators.contains(output[0].toString())) {
+                    output = ""
                 }
-                else -> {
-                    val lastCharIdx = output.length-1
-                    val lastChar = output[lastCharIdx].toString()
-                    if (operators.contains(lastChar)) {
-                        output = output.substring(0, lastCharIdx)
-                    }
+            }
+            else -> {
+                val lastCharIdx = output.length-1
+                val lastChar = output[lastCharIdx].toString()
+                if (operators.contains(lastChar)) {
+                    output = output.substring(0, lastCharIdx)
                 }
             }
         }
+
+        // check for negative sign for first operand
+        if (output[0] == '-') {
+            isNegative = true
+            output = output.substring(1, output.length)
+        }
+
         // store operands & operators used
-        val operands = output.split("-", "+", "/", "*")
+        val operands = output.split("-", "+", "/", "*").toMutableList()
+        if (operands.isNotEmpty() && isNegative) {
+            val firstOp = operands[0]
+            operands[0] = "-$firstOp"
+        }
         val usedOperators = arrayListOf<String>()
         for (char in output) {
            if (operators.contains(char.toString())) {
@@ -109,7 +136,10 @@ class MainActivity : AppCompatActivity() {
             Log.d(debugTag, "$idx : $result")
         }
         Log.d(debugTag, result.toString())
-        tvOutput.text = result.toString()
+        tvOutput.text =  when (result.rem(1)) {
+            0.0 -> result.toInt().toString()
+            else -> result.toString()
+        }
         output = ""
     }
 }

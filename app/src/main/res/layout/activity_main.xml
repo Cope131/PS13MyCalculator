@@ -40,8 +40,23 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_column="1"
-                android:layout_span="3"
                 android:text="AC" />
+
+            <Button
+                android:id="@+id/btnSign"
+                android:onClick="onClickButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="2"
+                android:text="+/-" />
+
+            <Button
+                android:id="@+id/btnRemainder"
+                android:onClick="onClickButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="3"
+                android:text="%" />
 
             <Button
                 android:id="@+id/btnDivide"
@@ -49,7 +64,7 @@
                 style="@style/OperationButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_column="2"
+                android:layout_column="4"
                 android:text="/" />
         </TableRow>
 
